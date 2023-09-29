@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Rock Paper Scissors Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .input-container {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      border: 1px solid #333;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+
+    .result-container {
+      margin-top: 20px;
+    }
+
+    .result-message {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .celebration-message {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Rock Paper Scissors Game</h1>
+  <div class="container">
+    <div class="input-container">
+      <label for="player-name">Enter your name:</label>
+      <input type="text" id="player-name" />
+    </div>
+    <button id="play-button">Play</button>
+    <canvas id="game-canvas" width="400" height="200"></canvas>
+    <div class="result-container">
+      <p class="result-message"></p>
+      <p class="celebration-message"></p>
+    </div>
+  </div>
+  <script>
+  // Get DOM elements
+  const canvas = document.getElementById('game-canvas');
+  const playButton = document.getElementById('play-button');
+  const playerNameInput = document.getElementById('player-name');
+  const resultMessage = document.querySelector('.result-message');
+  const celebrationMessage = document.querySelector('.celebration-message');
+
+  // Set up canvas
+  const ctx = canvas.getContext('2d');
+  ctx.font = 'bold 32px Arial';
+
+  // Game variables
+  const choices = ['rock', 'paper', 'scissors'];
+  let playerChoice;
+  let computerChoice;
+  let round = 0;
+  let playerWins = 0;
+  let computerWins = 0;
+
+  // Event listener for play button
+  playButton.addEventListener('click', startGame);
+
+  // Event listener for player name input
+  playerNameInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      startGame();
+    }
+  });
+
+  // Start the game
+  function startGame() {
+    const playerName = playerNameInput.value.trim();
+    if (playerName === '') {
+      alert('Please enter your name.');
+      return;
+    }
+
+    playerNameInput.disabled = true;
+    playButton.disabled = true;
+    playerNameInput.style.backgroundColor = '#ccc';
+
+    round = 0;
+    playerWins = 0;
+    computerWins = 0;
+    resultMessage.textContent = '';
+    celebrationMessage.textContent = '';
+
+    playRound();
+  }
+
+  // Play a round of the game
+  function playRound() {
+    round++;
+
+    // Generate computer's choice
+    computerChoice = choices[Math.floor(Math.random() * choices.length)];
+
+    // Display player's choice prompt
+    resultMessage.textContent = `Round ${round}: Choose your move`;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Display player's choices
+    drawChoice('rock', 100, 100);
+    drawChoice('paper', 200, 100);
+    drawChoice('scissors', 300, 100);
+
+    // Add click event listeners for player's choices
+    canvas.addEventListener('click', handlePlayerChoice);
+  }
+
+  // Handle player's choice selection
+  function handlePlayerChoice(event) {
+    const x = event.offsetX;
+    const y = event.offsetY;
+
+    if (y >= 70 && y <= 130) {
+      if (x >= 50 && x <= 150) {
+        playerChoice = 'rock';
+      } else if (x >= 150 && x <= 250) {
+        playerChoice = 'paper';
+      } else if (x >= 250 && x <= 350) {
+        playerChoice = 'scissors';
+      } else {
+        return;
+      }
+
+      canvas.removeEventListener('click', handlePlayerChoice);
+      playGame();
+    }
+  }
+
+  // Play the game
+  function playGame() {
+    // Determine the winner
+    let winner;
+    if (playerChoice === computerChoice) {
+      winner = 'draw';
+    } else if (
+      (playerChoice === 'rock' && computerChoice === 'scissors') ||
+      (playerChoice === 'paper' && computerChoice === 'rock') ||
+      (playerChoice === 'scissors' && computerChoice === 'paper')
+    ) {
+      winner = 'player';
+    } else {
+      winner = 'computer';
+    }
+
+    // Display the choices
+    drawChoice(playerChoice, 100, 100);
+    drawChoice(computerChoice, 300, 100);
+
+    // Display the result
+    resultMessage.textContent = `Round ${round}: ${playerChoice.toUpperCase()} vs ${computerChoice.toUpperCase()}`;
+
+    // Update the scores
+    if (winner === 'player') {
+      playerWins++;
+    } else if (winner === 'computer') {
+      computerWins++;
+    }
+
+    // Check if the game is over
+    if (round === 5) {
+      // Declare the winner
+      if (playerWins > computerWins) {
+        celebrationMessage.textContent = `Well done, ${playerNameInput.value}! You win! 🎉`;
+      } else if (playerWins < computerWins) {
+        celebrationMessage.textContent = `Computer wins! Better luck next time! 😢`;
+      } else {
+        celebrationMessage.textContent = `It's a draw!`;
+      }
+
+      // Enable input and play button for a new game
+      playerNameInput.disabled = false;
+      playButton.disabled = false;
+      playerNameInput.style.backgroundColor = '#fff';
+    } else {
+      // Play the next round
+      setTimeout(playRound, 2000);
+    }
+  }
+
+  // Draw a choice on the canvas
+  function drawChoice(choice, x, y) {
+    ctx.beginPath();
+    ctx.arc(x + 20, y + 20, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = '#f5f5f5';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#333';
+    ctx.stroke();
+
+    ctx.fillStyle = '#333';
+    // Set fillStyle for the symbol
+        ctx.fillStyle = '#333';
+
+        // Draw the symbol for each choice
+        if (choice === 'rock') {
+          ctx.font = 'bold 70px Arial';
+          ctx.fillText('✊', x + 10, y + 80);
+        } else if (choice === 'paper') {
+          ctx.font = 'bold 70px Arial';
+          ctx.fillText('✋', x + 10, y + 80);
+        } else if (choice === 'scissors') {
+          ctx.font = 'bold 70px Arial';
+          ctx.fillText('✌', x + 10, y + 80);
+        }
+      }
+
+      // Draw initial choices on the canvas
+      drawChoice('rock', 30, 90);
+      drawChoice('paper', 150, 90);
+      drawChoice('scissors', 270, 90);
+  </script>
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  color: #333;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.input-container {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover{
+  background: #333;
+}
+canvas {
+  display: block;
+  margin: 0 auto;
+  border: 1px solid #333;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.result-container {
+  margin-top: 20px;
+}
+
+.result-message {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.celebration-message {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+@media screen and (max-width: 600px) {
+  .container {
+    max-width: 100%;
+  }
+}
+  </style>
+</body>
+
+</html>
